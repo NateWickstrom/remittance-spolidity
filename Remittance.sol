@@ -16,7 +16,7 @@ contract Remittance {
 
     mapping(address => Account) public accounts;
 
-    event LogDeposit(address from, uint funds);
+    event LogDeposit(address from, address to, uint funds);
     event LogWithdrawl(address to, uint funds);
 
     /**
@@ -34,7 +34,7 @@ contract Remittance {
 
         // create a new Account to store the deposit
         accounts[to] = Account(msg.value, code);
-        emit LogDeposit(msg.sender, msg.value);
+        emit LogDeposit(msg.sender, to, msg.value);
     }
 
     /**
