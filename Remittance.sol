@@ -49,7 +49,7 @@ contract Remittance {
         // todo prevent bruteforce attacks by locking accounts after a certain number is tries
         require(accounts[msg.sender].passcode == sha256(exchangePassword, recipientPassword),
                 "Incorrect passcodes");
-        
+
         uint funds = accounts[msg.sender].balance;
         // update state before sending funds to prevent reentry attacks
         accounts[msg.sender] = Account(0,0);
@@ -63,7 +63,7 @@ contract Remittance {
     }
 
     function hasPendingFunds(address to) private view returns (bool) {
-        return accounts[msg.sender].balance > 0;
+        return accounts[to].balance > 0;
     }
 
 }
