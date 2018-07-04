@@ -44,7 +44,7 @@ contract Remittance {
     * @param exchangePassword intermediary password.
     * @param recipientPassword final recipient password.
     */
-    function withdrawl(bytes8 exchangePassword, bytes8 recipientPassword) public {
+    function withdrawl(string exchangePassword, string recipientPassword) public {
         require(hasPendingFunds(msg.sender), "No pending transfers");
         // todo prevent bruteforce attacks by locking accounts after a certain number is tries
         require(accounts[msg.sender].passcode == sha256(exchangePassword, recipientPassword),
