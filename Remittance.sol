@@ -19,8 +19,8 @@ contract Remittance {
     mapping(uint256 => Account) public accounts;
     mapping(bytes32 => bool) public usedPasswords;
 
-    event LogDeposit( uint accountId, address from, address to, uint funds);
-    event LogWithdraw(uint accountId, address to, uint funds);
+    event LogDeposit(uint indexed accountId, address indexed from, address indexed to, uint funds);
+    event LogWithdraw(uint indexed accountId, address indexed to, uint funds);
 
     /**
      * @dev Deposit funds into this contract that can only be withdrawn by the
