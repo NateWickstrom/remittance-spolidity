@@ -63,10 +63,10 @@ contract Remittance {
 
         // update state before sending funds to prevent reentry attacks
         delete accounts[accountId];
+        emit LogWithdraw(accountId, msg.sender, balance);
 
         // make the transfer
         require(msg.sender.send(balance), "Failed to send funds");
-        emit LogWithdraw(accountId, msg.sender, balance);
     }
 
 }
