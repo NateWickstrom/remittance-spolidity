@@ -16,6 +16,7 @@ contract Remittance {
     }
 
     mapping(uint256 => Account) public accounts;
+    mapping(bytes32 => bool) public usedPasswords;
 
     event LogDeposit( uint accountId, address from, address to, uint funds);
     event LogWithdraw(uint accountId, address to, uint funds);
@@ -33,9 +34,11 @@ contract Remittance {
         require(payee != address(0), "To Address must not be 0");
         require(password != bytes32(0), "Password is not strong enough");
         require(accounts[accountId].password != bytes32(0), "Account in use");
+        require(!usedPasswords[password], "Cannot reuse passwords");
 
         // create a new Account to store the deposit
         accounts[accountId] = Account(msg.value, payee, password);
+        usedPasswords[password] = true;
         emit LogDeposit(accountId, msg.sender, payee, msg.value);
     }
 
