@@ -1,6 +1,4 @@
 pragma solidity ^0.4.24;
-
-
 /**
  * @title Remittance
  *
@@ -8,6 +6,9 @@ pragma solidity ^0.4.24;
  * to receive them as long as they supply the correct passcodes.
  */
 contract Remittance {
+
+    // maximum amount of wei that can be transfered at a time
+    uint constant MAX_AMOUNT = 1000000000;
 
     struct Account {
         uint balance;
@@ -31,6 +32,7 @@ contract Remittance {
      */
     function deposit(uint accountId, address payee, bytes32 password) public payable {
         require(msg.value > 0, "Insufficient funds");
+        require(msg.value <= MAX_AMOUNT, "Funds exceed transaction limit");
         require(payee != address(0), "To Address must not be 0");
         require(password != bytes32(0), "Password is not strong enough");
         require(accounts[accountId].password != bytes32(0), "Account in use");
