@@ -15,6 +15,7 @@ contract Remittance is Pausable {
     uint constant MAX_AMOUNT = 1000000000;
 
     struct Account {
+        address payee;
         uint balance;
         bytes32 password;
     }
@@ -22,7 +23,7 @@ contract Remittance is Pausable {
     mapping(uint256 => Account) public accounts;
     mapping(bytes32 => bool) public usedPasswords;
 
-    event LogDeposit(uint accountId, address from, uint funds);
+    event LogDeposit(uint accountId, address from, address to, uint funds);
     event LogWithdraw(uint accountId, address to, uint funds);
 
     /**
@@ -30,19 +31,21 @@ contract Remittance is Pausable {
      * give 'to' address and they must supply.
      *
      * @param accountId used to id the transfer.
+     * @param payee whom the funds may be sent.
      * @param password to protect the given funds.
      */
-    function deposit(uint accountId, bytes32 password) whenNotPaused public payable {
+    function deposit(uint accountId, address payee, bytes32 password) whenNotPaused public payable {
         require(msg.value > 0, "Insufficient funds");
         require(msg.value <= MAX_AMOUNT, "Funds exceed transaction limit");
+        require(payee != address(0), "Payee address must not be 0x0");
         require(password != bytes32(0), "Password is not strong enough");
         require(accounts[accountId].password == bytes32(0), "Account in use");
         require(!usedPasswords[password], "Cannot reuse passwords");
 
         // create a new Account to store the deposit
-        accounts[accountId] = Account(msg.value, password);
+        accounts[accountId] = Account(payee, msg.value, password);
         usedPasswords[password] = true;
-        emit LogDeposit(accountId, msg.sender, msg.value);
+        emit LogDeposit(accountId, msg.sender, payee, msg.value);
     }
 
     /**
@@ -50,15 +53,14 @@ contract Remittance is Pausable {
     * correct passwords.
     *
     * @param accountId used to id the transfer.
-    * @param exchangePassword intermediary password.
-    * @param recipientPassword final recipient password.
+    * @param password to release funds.
     */
-    function withdraw(uint accountId, string exchangePassword, string recipientPassword) whenNotPaused public {
+    function withdraw(uint accountId, string password) whenNotPaused public {
         uint balance = accounts[accountId].balance;
-        bytes32 password = accounts[accountId].password;
 
+        require(accounts[accountId].payee == msg.sender, "Only payee can receive funds");
         require(balance > 0, "No pending transfers");
-        require(password == createPassword(exchangePassword, recipientPassword),
+        require(accounts[accountId].password == createPassword(msg.sender, password),
                 "Incorrect passwords");
 
         // update state before sending funds to prevent reentry attacks
@@ -69,8 +71,8 @@ contract Remittance is Pausable {
         require(msg.sender.send(balance), "Failed to send funds");
     }
 
-    function createPassword(string part1, string part2) public pure returns(bytes32) {
-        return sha256(abi.encodePacked(part1, part2));
+    function createPassword(address payee, string password) public pure returns(bytes32) {
+        return sha256(abi.encodePacked(payee, password));
     }
 
     function getAccountBalance(uint accountId) public view returns(uint) {
