@@ -1,12 +1,15 @@
 pragma solidity ^0.4.24;
 
+import 'openzeppelin-solidity/contracts/math/SafeMath.sol';
+import 'openzeppelin-solidity/contracts/lifecycle/Pausable.sol';
+
 /**
  * @title Remittance
  *
  * @dev The Remittance contract allows the owner to deposit funds and the receiver
  * to receive them as long as they supply the correct passcodes.
  */
-contract Remittance {
+contract Remittance is Pausable {
 
     // maximum amount of wei that can be transfered at a time
     uint constant MAX_AMOUNT = 1000000000;
@@ -29,7 +32,7 @@ contract Remittance {
      * @param accountId used to id the transfer.
      * @param password to protect the given funds.
      */
-    function deposit(uint accountId, bytes32 password) public payable {
+    function deposit(uint accountId, bytes32 password) whenNotPaused public payable {
         require(msg.value > 0, "Insufficient funds");
         require(msg.value <= MAX_AMOUNT, "Funds exceed transaction limit");
         require(password != bytes32(0), "Password is not strong enough");
@@ -50,7 +53,7 @@ contract Remittance {
     * @param exchangePassword intermediary password.
     * @param recipientPassword final recipient password.
     */
-    function withdraw(uint accountId, string exchangePassword, string recipientPassword) public {
+    function withdraw(uint accountId, string exchangePassword, string recipientPassword) whenNotPaused public {
         uint balance = accounts[accountId].balance;
         bytes32 password = accounts[accountId].password;
 
