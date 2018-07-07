@@ -1,0 +1,5 @@
+# Ignore build files
+build/
+
+# Ignore Node modules
+node_modules/
