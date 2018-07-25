@@ -1,4 +1,5 @@
 var Remittance = artifacts.require("./Remittance.sol");
+var UsePasswords = artifacts.require("./UsePasswords.sol");
 
 contract('Remittance', function(accounts) {
 

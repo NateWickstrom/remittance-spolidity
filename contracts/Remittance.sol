@@ -2,6 +2,7 @@ pragma solidity ^0.4.24;
 
 import 'openzeppelin-solidity/contracts/math/SafeMath.sol';
 import 'openzeppelin-solidity/contracts/lifecycle/Pausable.sol';
+import './UsedPasswords.sol';
 
 /**
  * @title Remittance
@@ -20,11 +21,17 @@ contract Remittance is Pausable {
         bytes32 password;
     }
 
+    UsedPasswordsInterface usedPasswords;
     mapping(uint256 => Account) public accounts;
-    mapping(bytes32 => bool) public usedPasswords;
 
     event LogDeposit(uint accountId, address from, address to, uint funds);
     event LogWithdraw(uint accountId, address to, uint funds);
+
+    constructor(address usedPasswordsAddress) public {
+        require(usedPasswordsAddress != address(0), "UsedPassords address must not be 0x0");
+
+        usedPasswords = UsedPasswordsInterface(usedPasswordsAddress);
+    }
 
     /**
      * @dev Deposit funds into this contract that can only be withdrawn by the
@@ -40,11 +47,10 @@ contract Remittance is Pausable {
         require(payee != address(0), "Payee address must not be 0x0");
         require(password != bytes32(0), "Password is not strong enough");
         require(accounts[accountId].password == bytes32(0), "Account in use");
-        require(!usedPasswords[password], "Cannot reuse passwords");
 
         // create a new Account to store the deposit
         accounts[accountId] = Account(payee, msg.value, password);
-        usedPasswords[password] = true;
+        usedPasswords.add(password);
         emit LogDeposit(accountId, msg.sender, payee, msg.value);
     }
 
